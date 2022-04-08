@@ -1,0 +1,223 @@
+<div class="card-wrapper">
+    <div class="card">
+        <!-- card left -->
+        <div class="product-imgs">
+            <div>
+                <a class="btn btn-primary" href="/weather/details?coord=<?php echo $_GET['coord'] ?>&action=current ">Current Weather</a>
+                <a class="btn btn-primary" href="/weather/details?coord=<?php echo $_GET['coord'] ?>&action=forecast">Forecast</a>
+                <a class="btn btn-primary" href="/weather/details?coord=<?php echo $_GET['coord'] ?>&action=history">History</a>
+                <a class="btn btn-primary" href="/weather/details?coord=<?php echo $_GET['coord'] ?>&action=timezone">Time Zone</a>
+                <a class="btn btn-primary" href="/weather/details?coord=<?php echo $_GET['coord'] ?>&action=sports">Sports</a>
+                <a class="btn btn-primary" href="/weather/details?coord=<?php echo $_GET['coord'] ?>&action=astronomy">Astronomy</a>
+                <a class="btn btn-primary" href="/weather/details?coord=<?php echo $_GET['coord'] ?>&action=alerts">Weather Alert</a>
+                <a class="btn btn-primary" href="/weather/details?coord=<?php echo $_GET['coord'] ?>&action=aqi">Air Quality</a>
+            </div>
+            <!-- card right -->
+
+            <?php
+            // echo "<pre>";
+            // print_r($data);
+            // echo "</pre>";
+
+            if ($_GET['action'] == null || $_GET['action'] == 'current') { ?>
+                <div class="courses-container">
+                    <div class="course">
+                        <div class="course-preview">
+                            <h6>Course</h6>
+                            <h2><?php echo $data['location']['name'] ?></h2>
+                            <a href="#"><?php echo $data['location']['localtime'] ?> <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="course-info">
+                            <div class="progress-container">
+
+
+                            </div>
+                            <h5>Temperature in °C : &nbsp;&nbsp;<b><?php echo $data['current']['temp_c'] ?>°C</b></h5>
+                            <h5>Temperature in °F : &nbsp;&nbsp;<b><?php echo $data['current']['temp_f'] ?>°F</b></h5>
+                            <h5>Wind speed in mph : &nbsp;&nbsp;<b><?php echo $data['current']['wind_mph'] ?>mph</h5>
+                            <h5>Wind speed in kph : &nbsp;&nbsp;<b><?php echo $data['current']['wind_kph'] ?>kmph</h5>
+                            <h6>Humidity : &nbsp;&nbsp;<b><?php echo $data['current']['humidity'] ?>kmph</h6>
+                            <h6>Feels like : &nbsp;&nbsp;<b><?php echo $data['current']['feelslike_c'] ?>°C</h6>
+
+                        </div>
+                    </div>
+                </div>
+
+            <?php
+            } elseif ($_GET['action'] == 'sports') { ?>
+                <div class="courses-container">
+                    <div class="course">
+                        <table class="table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Stadium</th>
+                                    <th>Country</th>
+                                    <th>Tournament</th>
+                                    <th>Start</th>
+                                    <th>Match</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                foreach ($data as $k => $v) {
+
+                                    foreach ($v as $key => $value) {
+
+                                        echo '
+                                    <tr>
+                                        <td>' . $key . '</td>
+                                        <td>' . $value['stadium'] . '</td>
+                                        <td>' . $value['country'] . '</td>
+                                        <td>' . $value['tournament'] . '</td>
+                                        <td>' . $value['start'] . '</td>
+                                        <td>' . $value['match'] . '</td>
+                                        
+                                    </tr>
+                                    ';
+                                    }
+                                } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            <?php } elseif ($_GET['action'] == 'astronomy') { ?>
+                <h2>Astronomy</h2>
+                <div class="courses-container">
+                    <div class="course">
+                        <div class="course-preview">
+                            <h6>Course</h6>
+                            <h2><?php echo $data['location']['name'] ?></h2>
+                            <a href="#"><?php echo $data['location']['localtime'] ?> <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="course-info">
+
+                            <h5>Sunrise : &nbsp;&nbsp;<b><?php echo $data['astronomy']['astro']['sunrise'] ?></b></h5>
+                            <h5>Sunset : &nbsp;&nbsp;<b><?php echo $data['astronomy']['astro']['sunset'] ?></b></h5>
+                            <h5>Moonrise : &nbsp;&nbsp;<b><?php echo $data['astronomy']['astro']['moonrise'] ?></b></h5>
+                            <h5>Moon Phase : &nbsp;&nbsp;<b><?php echo $data['astronomy']['astro']['moon_phase'] ?></b></h5>
+
+                        </div>
+                    </div>
+                </div>
+
+            <?php } elseif ($_GET['action'] == 'timezone') { ?>
+                <h2>Time Zone</h2>
+                <div class="courses-container">
+                    <div class="course">
+                        <div class="course-preview">
+                            <h6>Course</h6>
+                            <h2><?php echo $data['location']['name'] ?></h2>
+                            <a href="#"><?php echo $data['location']['localtime'] ?> <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="course-info">
+
+                            <h5>Latitude : &nbsp;&nbsp;<b><?php echo $data['location']['lat'] ?></b></h5>
+                            <h5>Longitude : &nbsp;&nbsp;<b><?php echo $data['location']['lon'] ?></b></h5>
+                            <h5>Region : &nbsp;&nbsp;<b><?php echo $data['location']['region'] ?></b></h5>
+
+                        </div>
+                    </div>
+                </div>
+
+            <?php } elseif ($_GET['action'] == 'forecast') { ?>
+                <div class="courses-container">
+                    <h3>Forecast of 3 Days</h3>
+                    <div class="course">
+                        <table class="table-striped" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Max Temp °C </th>
+                                    <th>Max Temp °F </th>
+                                    <th>Min Temp °C </th>
+                                    <th>Min Temp °F </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($data['forecast']['forecastday'] as $key => $value) {
+
+                                    echo '
+                                    <tr>
+                                        <td>' . $key . '</td>
+                                        <td>' . $value['date'] . '</td>
+                                        <td>' . $value['day']['maxtemp_c'] . '°C </td>
+                                        <td>' . $value['day']['maxtemp_f'] . '°C </td>
+                                        <td>' . $value['day']['mintemp_c'] . '°C </td>
+                                        <td>' . $value['day']['mintemp_f'] . '°C </td>
+                                    </tr>
+                                    ';
+                                } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            <?php } elseif ($_GET['action'] == 'history') { ?>
+                <div class="courses-container">
+                    <h3>History of Previous Day</h3>
+                    <div class="course">
+                        <table class="table-striped" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Max Temp °C </th>
+                                    <th>Max Temp °F </th>
+                                    <th>Min Temp °C </th>
+                                    <th>Min Temp °F </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($data['forecast']['forecastday'] as $key => $value) {
+
+                                    echo '
+                                    <tr>
+                                        <td>' . $key . '</td>
+                                        <td>' . $value['date'] . '</td>
+                                        <td>' . $value['day']['maxtemp_c'] . '°C </td>
+                                        <td>' . $value['day']['maxtemp_f'] . '°C </td>
+                                        <td>' . $value['day']['mintemp_c'] . '°C </td>
+                                        <td>' . $value['day']['mintemp_f'] . '°C </td>
+                                    </tr>
+                                    ';
+                                } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            <?php } elseif ($_GET['action'] == 'alerts') { ?>
+                <div class="courses-container">
+                    <?php
+                    if (count($data['alerts']['alert'])<=0){
+                        echo "<h2>No Alerts for your place</h2>";
+                    } else {
+                        print_r($data['alerts']['alert']);
+                    }
+                    ?>
+                </div>
+
+            <?php } elseif ($_GET['action'] == 'aqi') { ?>
+                <div class="courses-container">
+                    <div class="course">
+
+                        <div class="course-info">
+                            <div class="progress-container">
+
+
+                            </div>
+                            <h5>CO : &nbsp;&nbsp;<b><?php echo $data['current']['air_quality']['co'] ?></b></h5>
+                            <h5>no2 : &nbsp;&nbsp;<b><?php echo $data['current']['air_quality']['no2'] ?></b></h5>
+                            <h5>o3 : &nbsp;&nbsp;<b><?php echo $data['current']['air_quality']['o3'] ?></b></h5>
+                            <h5>so2 : &nbsp;&nbsp;<b><?php echo $data['current']['air_quality']['so2'] ?></b></h5>
+                            <h5>pm2_5 : &nbsp;&nbsp;<b><?php echo $data['current']['air_quality']['pm2_5'] ?></b></h5>
+
+
+                        </div>
+                    </div>
+                </div>
+
+            <?php } ?>
