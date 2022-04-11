@@ -1,0 +1,29 @@
+        
+        <div class="col-12">
+            <h3>My Playlists</h3>
+            <table class="table table-image">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form action="/spotify/removeTrack" method="post">
+                        <?php foreach ($playlists['items'] as $key => $value) {
+                            echo "<tr>
+                                <td>".$key."</td>
+                                <td>".$value['track']['album']['name']."</td>
+                                <td><button class='btn btn-success' type='submit' name='removeTrack' value=".$value['track']['uri'].">Remove</button></td>
+                            </tr>
+                            <input type='hidden' name='playlist_id' value=".$_GET['id'].">
+                            ";
+                        }
+                        ?>
+                    </form>
+                </tbody>
+            </table>
+        </div>
+  
+

@@ -3,10 +3,18 @@
 use Phalcon\Mvc\Controller;
 use GuzzleHttp\Client;
 
-
+/**
+ * Controller class that handles all spotify related actions
+ */
 class SpotifyController extends Controller
 {
+    /**
+     * Action to generate and set Access Token in session variable
+     *
+     * @return void
+     */
     public function apiAction() {
+        /* Generating Code */
         $url = "https://accounts.spotify.com/authorize?";
 
         $client_id = 'bd445785f74f446bab81aacf79d31171';
@@ -21,8 +29,10 @@ class SpotifyController extends Controller
 
         $OauthUrl = $url.http_build_query($headers);
         $this->view->OauthUrl = $OauthUrl;
-        // die($OauthUrl);
-        
+        /////////////////////////////////////////////
+
+        /* if code is set then generate and set the access token into session variable */
+
         if ($this->request->get('code') !=null){
             $code = $this->request->get('code');
             $data = array(
@@ -30,7 +40,9 @@ class SpotifyController extends Controller
                 'grant_type'   => 'authorization_code',
                 'code'         => $code,
             );
-            $ch            = curl_init();
+
+            $ch = curl_init();
+
             curl_setopt($ch, CURLOPT_URL, 'https://accounts.spotify.com/api/token');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_POST, 1);
@@ -47,15 +59,15 @@ class SpotifyController extends Controller
     
 
     /**
-     * Action to search and return songs
+     * Action to search and return tracks, albums, playlists, shows and episodes.
      *
      * @return void
      */
     public function searchAction()
     {
+        $this->view->allPlaylists = $this->getPlaylist();
         if ($this->request->isPost()) {
             $toSearch = urlencode($this->request->getPost('search'));
-            
             if ($this->request->has('track') || count($this->request->getPost()) == 1) {
                 $this->view->tracks = $this->result($toSearch, 'track');
             } if ($this->request->has('album')) {
@@ -72,40 +84,45 @@ class SpotifyController extends Controller
             
         }
     }
-
+    /**
+     * Action to add Tracks to a playlist
+     *
+     * @return void
+     */
     public function addAction() {
-        // $user_id = '31nwdvwccxejpkrxbzkbbqdpkrlq';
-        // $url = "https://api.spotify.com/v1/playlists//tracks";
+        
+        if ($this->request->isPost()) {
+            $playlist_id = $this->request->getPost('playlist');
+            $uri = $this->request->getPost('uri');
 
-        // $ch = curl_init();
+            $url = "https://api.spotify.com/";
 
-        // curl_setopt($ch, CURLOPT_URL,"http://www.example.com/tester.phtml");
-        // curl_setopt($ch, CURLOPT_POST, 1);
-        // curl_setopt($ch, CURLOPT_POSTFIELDS,
-        //             "postvar1=value1&postvar2=value2&postvar3=value3");
-
-        // // In real lif
-        // // Receive server response ...
-        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        // $server_output = curl_exec($ch);
-
-        // curl_close ($ch);
-        // // Receive server response ...
-        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        // $server_output = curl_exec($ch);
-
-        // curl_close ($ch);
+            $client = new Client([
+                'base_uri' => URL
+            ]);
+            $result = $client->request('POST', "/v1/playlists/$playlist_id/tracks?uris=$uri", [
+                'headers' => [
+                    'Authorization' => "Bearer " . $this->session->token
+                ]
+            ]);
+        }
+        $this->response->redirect('/spotify/search');
 
     }
 
+    /**
+     * Function that accepts the search query and 
+     *
+     * @param [type] $toSearch
+     * @param [type] $type
+     * @return void
+     */
     public function result($toSearch, $type) {
         $url = URL . "search?q=$toSearch&type=$type";
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        //  die(print_r($this->session->token));
+
         $headers = array('Authorization: Bearer ' . $this->session->token);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -117,4 +134,134 @@ class SpotifyController extends Controller
         return json_decode($result, true);
     }
 
+    /**
+     * Function to return current user's playlists
+     *
+     * @return void
+     */
+    public function getPlaylist() {
+        $url = "https://api.spotify.com/v1/me/playlists";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+
+        $headers = array('Authorization: Bearer ' . $this->session->token);
+        
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        // Timeout in seconds
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+
+        $result = curl_exec($ch);
+        return json_decode($result, true);
+
+    }
+
+    /**
+     * Action to delete a track from playlist
+     *
+     * @return void
+     */
+    public function removeTrackAction() {
+        if ($this->request->isPost()) {
+            $playlist_id = $this->request->getPost('playlist_id');
+            $track_uri = $this->request->getPost('removeTrack');
+
+            
+
+            $client = new Client([
+                'base_uri' => URL
+            ]);
+            $result = $client->request('DELETE', "v1/playlists/$playlist_id/tracks", [
+                'headers' => [
+                    'Authorization' => "Bearer " . $this->session->token
+                ],
+                'body' => json_encode([
+                    "uris" => [$track_uri]
+                ])
+            ]);
+            
+        }
+        $this->response->redirect('/spotify/viewPlaylists?id='.$playlist_id);
+    }
+
+    /**
+     * Action to Create Playlist
+     *
+     * @return void
+     */
+    public function createPlaylistAction() {
+        if ($this->request->isPost()){
+            $playlistName = $this->request->getPost('playlist');
+            $description = $this->request->getPost('description');
+            $user_id = $this->getUserDetails()['id'];
+
+            $client = new Client([
+                'base_uri' => URL
+            ]);
+            $result = $client->request('POST', "https://api.spotify.com/v1/users/$user_id/playlists", [
+                'headers' => [
+                    'Authorization' => "Bearer " . $this->session->token
+                ],
+                'body' => json_encode([
+                    "name" => $playlistName,
+                    "description" => $description,
+                    "public" => false
+                ])
+            ]);
+       }
+       $this->response->redirect('/spotify/search');
+    }
+
+    /**
+     * Get Current User's Details
+     *
+     * @return void
+     */
+    public function getUserDetails() {
+        $url = URL.'me';
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+
+        $headers = array('Authorization: Bearer ' . $this->session->token);
+        
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        // Timeout in seconds
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+
+        $result = curl_exec($ch);
+        
+        return (json_decode($result, true));
+    }
+
+    /**
+     * Action to display all playlists of the current user
+     *
+     * @return void
+     */
+    public function viewPlaylistsAction () {
+        if ($this->request->get('id')!=null) {
+            $playlist_id = $this->request->get('id');
+            $url = URL."/$playlist_id/tracks";
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+
+            $headers = array('Authorization: Bearer ' . $this->session->token);
+            
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+            // Timeout in seconds
+            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+
+            $result = curl_exec($ch);
+            $this->view->playlists = json_decode($result, true);
+            
+        }
+    }
 }
