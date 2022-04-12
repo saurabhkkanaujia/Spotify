@@ -1,6 +1,8 @@
 <?php
 
 use Phalcon\Mvc\Controller;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 class UserController extends Controller
 {
@@ -70,9 +72,36 @@ class UserController extends Controller
                 if(!$access_token) {
                     $this->response->redirect('/spotify/api');
                 } else {
-                    $this->response->redirect('/spotify/dashboard');
+                    $this->response->redirect('/user/dashboard');
                 }
             }
         }
+    }
+    public function dashboardAction() {
+        if($this->session->loginUser!=null){
+            try{
+                $user = new SpotifyController;
+                $this->view->user = $user->getUserDetails();
+
+                $user = Users::findFirst($this->session->loginUser->id);
+                $access_token = $user->access_token;
+        
+                $client = new Client([
+                    'base_uri' => URL
+                ]);
+                $result = $client->request('GET', "recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_tracks=0c6xIDDpzE81m2q797ordA&seed_genres=classical", [
+                    'headers' => [
+                        'Authorization' => "Bearer " . $access_token
+                    ]
+                ]);
+                $this->view->data = json_decode($result->getBody(), true);
+            } catch (ClientException $e) {
+                $eventsManager = $this->di->get('EventsManager');
+                $eventsManager->fire('notifications:refreshToken', $this);
+            }
+        } else {
+            $this->response->redirect('/user/signin?err=Please Sign in First');
+        }
+        
     }
 }

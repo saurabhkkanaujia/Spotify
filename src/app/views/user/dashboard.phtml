@@ -1,0 +1,91 @@
+<?php include 'header.phtml'; ?>
+    <div class="row">
+    <?php include 'sidebar.phtml'; ?>
+     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        
+             <div class="d-flex justify-content-between flex-wrap 
+          flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                 <div class="btn-toolbar mb-2 mb-md-0">
+                     <div class="btn-group me-2">
+                         <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                         <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                     </div>
+                     <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                         <span data-feather="calendar"></span>
+                         This week
+                     </button>
+                 </div>
+             </div>
+
+             
+
+        
+
+             <h1 class="h3 mb-3 fw-normal">Hello&nbsp;&nbsp;&nbsp;&nbsp; <?php echo $user['display_name'] ?></h1>
+             <hr>
+             <form action="" method="post">
+                 <h1 class="h3 mb-3 fw-normal">My Profile</h1>
+
+                 <div class="form-floating">
+                     <label for="floatingInput">Username</label>
+                     <input type="text" class="form-control" id="floatingInput" name="full_name" placeholder="Username" value="<?php echo $user['display_name'] ?>" disabled>
+                 </div>
+
+                 <div class="form-floating">
+                     <label for="floatingInput">Followers</label>
+                     <input type="text" class="form-control" id="floatingInput" name="email" placeholder="Full Name" value="<?php echo $user['followers']['total'] ?>" disabled>
+                 </div>
+
+                 
+
+
+                 <!-- <button class="w-100 btn btn-lg btn-primary" type="submit" name="submit" value="update">Update</button> -->
+                 <p class="mt-5 mb-3 text-muted">&copy; CEDCOSS Technologies</p>
+             </form>
+             <!-- ddddddddddddddddddddddddddddddddddddddddddddddddddddd -->
+             <?php if (isset($data)) {
+    // echo "<pre>";
+    // print_r($data);die;
+?>
+    <div class="container">
+        <h2>Recommendations</h2>
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-image">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Artist</th>
+                            <th scope="col">Album</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($data['tracks'] as $key => $value) {
+
+                            echo "
+                            <tr>
+                                    <td>.$key.</td>
+                                    <td>" . $value['name'] . "</td>
+                                    <td>";
+                            foreach ($value['artists'] as $k => $v) {
+                                echo $v['name'] . "<br>";
+                            }
+                            echo "</td>
+                                <td>" . $value['album']['name'] . "</td>
+                                <td></tr>";
+                            
+                            
+                        }
+                        ?>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<?php } ?>
+
+     </main>
+     </div>

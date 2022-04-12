@@ -56,7 +56,7 @@ class SpotifyController extends Controller
             $user->refresh_token = $result->refresh_token;
             $user->save();
             $this->session->token = $result->access_token;
-            $this->response->redirect('/spotify/dashboard');
+            $this->response->redirect('/user/dashboard');
         }
 
 
@@ -71,7 +71,8 @@ class SpotifyController extends Controller
     public function searchAction()
     {
         $this->view->allPlaylists = $this->getPlaylist();
-        if ($this->request->isPost()) {
+        if ($this->request->getPost()) {
+            
             $toSearch = urlencode($this->request->getPost('search'));
             if ($this->request->has('track') || count($this->request->getPost()) == 1) {
                 $this->view->tracks = $this->result($toSearch, 'track');
@@ -145,7 +146,7 @@ class SpotifyController extends Controller
         } catch (ClientException $e) {
             $eventsManager = $this->di->get('EventsManager');
             $eventsManager->fire('notifications:refreshToken', $this);
-            
+            $this->response->redirect('/spotify/search?search='.$toSearch.'&type='.$type);
         }
        
     }

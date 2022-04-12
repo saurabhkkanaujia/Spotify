@@ -12,6 +12,6 @@ class IndexController extends Controller
      */
     public function indexAction()
     {
-        $this->response->redirect('/spotify/search');
+        $this->response->redirect('/user/signin');
     }
 }

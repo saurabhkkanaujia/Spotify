@@ -15,7 +15,7 @@ use Users;
 
 class NotificationsListeners extends Injectable
 {
-    public function refreshToken(Event $event, SpotifyController $component) {
+    public function refreshToken(Event $event, $component) {
         $user = Users::findFirst($this->session->loginUser->id);
         $refresh_token = $user->refresh_token;
         $client_id = 'bd445785f74f446bab81aacf79d31171';
