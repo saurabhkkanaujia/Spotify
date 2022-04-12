@@ -6,7 +6,7 @@ use Phalcon\Mvc\Controller;
 class IndexController extends Controller
 {
     /**
-     * Action redirects to the search action of spotify controller
+     * Action redirects to the signin page
      *
      * @return void
      */

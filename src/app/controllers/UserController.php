@@ -6,6 +6,11 @@ use GuzzleHttp\Exception\ClientException;
 
 class UserController extends Controller
 {
+     /**
+     * Action for signup
+     *
+     * @return void
+     */
     public function signupAction()
     {
         if ($this->request->isPost()) {
@@ -49,6 +54,11 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Action for signin
+     *
+     * @return void
+     */
     public function signinAction()
     {
         if ($this->request->isPost()) {
@@ -77,6 +87,11 @@ class UserController extends Controller
             }
         }
     }
+    /**
+     * Action to display user's spotify profile and recommendations
+     *
+     * @return void
+     */
     public function dashboardAction() {
         if($this->session->loginUser!=null){
             try{
@@ -98,6 +113,7 @@ class UserController extends Controller
             } catch (ClientException $e) {
                 $eventsManager = $this->di->get('EventsManager');
                 $eventsManager->fire('notifications:refreshToken', $this);
+                
             }
         } else {
             $this->response->redirect('/user/signin?err=Please Sign in First');
