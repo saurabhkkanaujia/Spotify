@@ -11,7 +11,8 @@
                 </thead>
                 <tbody>
                     <form action="/spotify/removeTrack" method="post">
-                        <?php foreach ($playlists['items'] as $key => $value) {
+                        <?php 
+                        foreach ($playlists['items'] as $key => $value) {
                             echo "<tr>
                                 <td>".$key."</td>
                                 <td>".$value['track']['album']['name']."</td>

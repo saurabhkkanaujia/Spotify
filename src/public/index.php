@@ -12,6 +12,8 @@ use Phalcon\Db\Adapter\Pdo\Mysql;
 use Phalcon\Config;
 use Phalcon\Session\Manager;
 use Phalcon\Session\Adapter\Stream;
+use Phalcon\Events\Manager as EventsManager;
+
 
 require '../public/vendor/autoload.php';
 
@@ -34,13 +36,25 @@ $loader->registerDirs(
 
 $loader->registerNamespaces(
     [
-        'App\Components' => APP_PATH . '/component'
+        'App\Components' => APP_PATH . '/component',
+        'App\Listeners' => APP_PATH . '/listeners'
     ]
 );
 
 $loader->register();
 
 $container = new FactoryDefault();
+$eventsManager = new EventsManager();
+$eventsManager->attach(
+    'notifications',
+    new App\Listeners\NotificationsListeners()
+);
+$container->set(
+    'EventsManager',
+    $eventsManager
+);
+$application = new Application($container);
+$application->setEventsManager($eventsManager);
 
 $container->set(
     'view',
@@ -78,7 +92,7 @@ $container->set(
     }
 );
 
-$application = new Application($container);
+
 
 
 

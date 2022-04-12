@@ -2,6 +2,7 @@
 
 use Phalcon\Mvc\Controller;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 /**
  * Controller class that handles all spotify related actions
@@ -50,8 +51,12 @@ class SpotifyController extends Controller
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Basic ' . base64_encode($client_id . ':' . $client_secret)));
 
             $result = json_decode(curl_exec($ch));
+            $user = Users::findFirst($this->session->loginUser->id);
+            $user->access_token = $result->access_token;
+            $user->refresh_token = $result->refresh_token;
+            $user->save();
             $this->session->token = $result->access_token;
-            $this->response->redirect('/spotify/search');
+            $this->response->redirect('/spotify/dashboard');
         }
 
 
@@ -96,15 +101,21 @@ class SpotifyController extends Controller
             $uri = $this->request->getPost('uri');
 
             $url = "https://api.spotify.com/";
-
-            $client = new Client([
-                'base_uri' => URL
-            ]);
-            $result = $client->request('POST', "/v1/playlists/$playlist_id/tracks?uris=$uri", [
-                'headers' => [
-                    'Authorization' => "Bearer " . $this->session->token
-                ]
-            ]);
+            
+            try{
+                $client = new Client([
+                    'base_uri' => URL
+                ]);
+                
+                $result = $client->request('POST', "/v1/playlists/$playlist_id/tracks?uris=$uri", [
+                    'headers' => [
+                        'Authorization' => "Bearer " . $this->session->token
+                    ]
+                ]);
+            } catch (ClientException $e) {
+                $eventsManager = $this->di->get('EventsManager');
+                $eventsManager->fire('notifications:refreshToken', $this);
+            }
         }
         $this->response->redirect('/spotify/search');
 
@@ -118,20 +129,25 @@ class SpotifyController extends Controller
      * @return void
      */
     public function result($toSearch, $type) {
-        $url = URL . "search?q=$toSearch&type=$type";
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-
-        $headers = array('Authorization: Bearer ' . $this->session->token);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        // Timeout in seconds
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-
-        $result = curl_exec($ch);
-        return json_decode($result, true);
+        try{
+            $user = Users::findFirst($this->session->loginUser->id);
+            $access_token = $user->access_token;
+    
+            $client = new Client([
+                'base_uri' => URL
+            ]);
+            $result = $client->request('GET', "search?q=$toSearch&type=$type", [
+                'headers' => [
+                    'Authorization' => "Bearer " . $access_token
+                ]
+            ]);
+            return json_decode($result->getBody(), true);
+        } catch (ClientException $e) {
+            $eventsManager = $this->di->get('EventsManager');
+            $eventsManager->fire('notifications:refreshToken', $this);
+            
+        }
+       
     }
 
     /**
@@ -169,7 +185,7 @@ class SpotifyController extends Controller
             $track_uri = $this->request->getPost('removeTrack');
 
             
-
+        try{
             $client = new Client([
                 'base_uri' => URL
             ]);
@@ -181,6 +197,10 @@ class SpotifyController extends Controller
                     "uris" => [$track_uri]
                 ])
             ]);
+        } catch (ClientException $e) {
+            $eventsManager = $this->di->get('EventsManager');
+            $eventsManager->fire('notifications:refreshToken', $this);
+        }
             
         }
         $this->response->redirect('/spotify/viewPlaylists?id='.$playlist_id);
@@ -196,20 +216,25 @@ class SpotifyController extends Controller
             $playlistName = $this->request->getPost('playlist');
             $description = $this->request->getPost('description');
             $user_id = $this->getUserDetails()['id'];
-
-            $client = new Client([
-                'base_uri' => URL
-            ]);
-            $result = $client->request('POST', "https://api.spotify.com/v1/users/$user_id/playlists", [
-                'headers' => [
-                    'Authorization' => "Bearer " . $this->session->token
-                ],
-                'body' => json_encode([
-                    "name" => $playlistName,
-                    "description" => $description,
-                    "public" => false
-                ])
-            ]);
+            try{
+                $client = new Client([
+                    'base_uri' => URL
+                ]);
+                $result = $client->request('POST', "https://api.spotify.com/v1/users/$user_id/playlists", [
+                    'headers' => [
+                        'Authorization' => "Bearer " . $this->session->token
+                    ],
+                    'body' => json_encode([
+                        "name" => $playlistName,
+                        "description" => $description,
+                        "public" => false
+                    ])
+                ]);
+            } catch (ClientException $e) {
+            $eventsManager = $this->di->get('EventsManager');
+            $eventsManager->fire('notifications:refreshToken', $this);
+            
+        }
        }
        $this->response->redirect('/spotify/search');
     }
@@ -246,21 +271,23 @@ class SpotifyController extends Controller
     public function viewPlaylistsAction () {
         if ($this->request->get('id')!=null) {
             $playlist_id = $this->request->get('id');
-            $url = URL."/$playlist_id/tracks";
-
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-
-            $headers = array('Authorization: Bearer ' . $this->session->token);
-            
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-            // Timeout in seconds
-            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-
-            $result = curl_exec($ch);
-            $this->view->playlists = json_decode($result, true);
+            try{
+                $user = Users::findFirst($this->session->loginUser->id);
+                $access_token = $user->access_token;
+        
+                $client = new Client([
+                    'base_uri' => URL
+                ]);
+                $result = $client->request('GET', "playlists/$playlist_id/tracks", [
+                    'headers' => [
+                        'Authorization' => "Bearer " . $access_token
+                    ]
+                ]);
+                $this->view->playlists = json_decode($result->getBody(), true);
+            } catch (ClientException $e) {
+                $eventsManager = $this->di->get('EventsManager');
+                $eventsManager->fire('notifications:refreshToken', $this);
+            }
             
         }
     }
